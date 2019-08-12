@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+<input id="c"/>
+
+<div id="receive"></div>
+<button id="s">发送</button>
+</body>
+
+<script>
+    var uid = 201917263721;
+   var ws = new WebSocket('ws://127.0.0.1:3000/group/1/' + uid);
+   //   var ws = new WebSocket('wss://chongliao.j-book.cn/ws/group/1/66');
+
+    // var ws = new WebSocket('wss://chongliao.j-book.cn/ws?id=102&group_id=0');
+    ws.onopen = function(){
+        alert("连接成功");
+    };
+    ws.onmessage = function(e){
+        document.getElementById("receive").innerText=e.data;
+    };
+    var btn = document.getElementById("s");
+    var c = document.getElementById("c");
+    btn.onclick=function(){
+        message = JSON.stringify({
+            email: "574543543@qq.com",
+            user_id: uid.toString(),
+            username: "fred",
+            message: c.value, // Strip out html
+            to_user_id:"0",
+            group_id:"1"
+        });
+        ws.send(message);
+    }
+
+</script>
+</html>

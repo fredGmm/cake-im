@@ -6,114 +6,126 @@ import (
 	"github.com/alecthomas/kingpin"
 	"github.com/gorilla/mux"
 	"github.com/gorilla/websocket"
-	"imChong/module"
-	"log"
+	"go.uber.org/zap"
+	"imChong/log"
+	"imChong/module/client"
+	"imChong/module/db"
 	"net/http"
 )
-
-type Result struct {
-	Code    int    `json:"code"`
-	Data    []int  `json:"data"`
-	Message string `json:"message"`
-}
-
-var upgrader = websocket.Upgrader{}
-var cfg *goconfig.ConfigFile
-var configPath string
 
 type Config struct {
 	dev       int
 	apiPrefix string
 	ip        string
 	port      string
+	redisAddr 	  string
+	redisPwd  string
 }
-var config = Config{}
 
-var groupChannel = make(chan *module.Group)
-var Groups = make(map[string]*module.Group)
-var pool = &module.ConnectionPool{
-	Connections:make(map[string]*module.Client),
-	Join:make(chan *module.Client),
-	Left:make(chan string),
-
+var (
+	upgrader = websocket.Upgrader{}
+	cfg *goconfig.ConfigFile
+	config = Config{}
+	configPath string
+	groupChannel = make(chan *client.Group)
+	Groups = make(map[string]*client.Group)
+)
+// 链接存放池 （可以适当备份）
+var pool = &client.ConnectionPool{
+	Connections: make(map[string]*client.Client),
+	Join:        make(chan *client.Client),
+	Left:        make(chan string),
 }
+var ZLogger = Zlog.Logger()
 var exit chan int
 
+const (
+	version = "0.0.1"
+)
+
+
 func parseFlag() {
+	var defaultConfigPath string
 	kingpin.HelpFlag.Short('h')
 	kingpin.Version("0.0.1")
-	kingpin.Flag("dev", "是否开发").Default("1").IntVar(&config.dev)
-	kingpin.Flag("configPath", "配置文件地址").Default("E:\\code\\golang\\src\\imChong\\Config.ini").StringVar(&configPath)
+	defaultConfigPath = "E:\\code\\golang\\src\\imChong\\Config.ini"
+	kingpin.Flag("configPath", "配置文件地址").Default(defaultConfigPath).StringVar(&configPath)
 	kingpin.Parse() // first parse conf
-	if config.dev == 1 {
-		cfg, _ = goconfig.LoadConfigFile(configPath)
-		config.apiPrefix, _ = cfg.GetValue("dev", "apiPrefix")
-		config.ip, _ = cfg.GetValue("dev", "ip")
-		config.port, _ = cfg.GetValue("dev", "port")
-	} else {
-		cfg, _ = goconfig.LoadConfigFile("/data/chongliao.com/imChong/Config.ini")
-		config.apiPrefix, _ = cfg.GetValue("product", "apiPrefix")
-		config.ip, _ = cfg.GetValue("product", "ip")
-		config.port, _ = cfg.GetValue("product", "port")
-	}
+	cfg, _ = goconfig.LoadConfigFile(configPath)
+	config.apiPrefix, _ = cfg.GetValue("product", "apiPrefix")
+	config.ip, _ = cfg.GetValue("product", "ip")
+	config.port, _ = cfg.GetValue("product", "port")
+	config.redisAddr, _ = cfg.GetValue("product", "redisAddr")
+	config.redisPwd, _ = cfg.GetValue("product", "redisPwd")
 }
 
 func main() {
 	parseFlag()
+	
 	r := mux.NewRouter()
 	r.HandleFunc("/group/{groupId}/{userId}", GroupConn)
 	r.HandleFunc("/user/{userId}/{toUserId}", UserConn)
 	http.Handle("/", r)
 	go GroupsHandle()
 	go pool.Handle()
+	ZLogger.Info(config.ip + ":" + config.port)
 	err := http.ListenAndServe(config.ip+":"+config.port, nil)
 	if err != nil {
-		log.Fatal("ListenAndServe: ", err)
+		ZLogger.Fatal("ListenAndServe fail", zap.Error(err))
 	}
 }
 
 // 新建连接
-func GroupConn(w http.ResponseWriter, r *http.Request)  {
+func GroupConn(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	//不检查来源
 	upgrader.CheckOrigin = func(r *http.Request) bool { return true }
 	ws, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
-		log.Print("https升级为wss失败:err:")
-		log.Fatal(err)
+		ZLogger.Fatal("https升级为wss失败", zap.Error(err))
 	}
 	//userId := r.URL.Query().Get("id") // 用户id
-	//groupId := r.URL.Query().Get("group_id") // 群组id
-
 	userId := vars["userId"]
 	groupId := vars["groupId"]
-	fmt.Println(groupId,userId)
+	ZLogger.Info("new connect",
+		zap.String("ip", r.RemoteAddr),
+		zap.String("type", "group"),
+		zap.String("groupId", groupId),
+		zap.String("userId", userId),
+		zap.String("path", r.URL.Path),
+	)
 	defer func() {
 		err := ws.Close()
 		if err != nil {
-			fmt.Println("链接时 断开:")
-			fmt.Println(userId)
-			fmt.Println(err)
-			// 发送消息通知
+			ZLogger.Warn("链接断开",
+				zap.String("type", "group"),
+				zap.String("GroupId", groupId),
+				zap.String("userId", userId),
+				zap.Error(err),
+			)
 			return
 		}
 	}()
 
 	//链接
 	if len(userId) > 0 && userId != "0" {
-		client := module.NewClient(ws, userId)
-		var group *module.Group
+		c := client.NewClient(ws, userId)
+		var group *client.Group
 		var ok bool
 		group, ok = Groups[groupId]
 		if !ok {
 			// 不存在这个群组
-			group = module.NewGroup()
+			group = client.NewGroup()
 			Groups[groupId] = group
 			groupChannel <- group
 		}
-		group.Clients[userId] = client
-		go client.ReadMessage(group, nil)
-		go client.WriteMessage(pool)
+		//group.Clients[userId] = client
+		group.Clients.Store(userId, c)
+		redisContain := db.NewRedisContain(config.redisAddr, config.redisPwd)
+		c.Redis = redisContain
+		redisContain.JoinMember(userId, groupId)
+		go c.ReadMessage(group)
+		go c.WriteMessage(pool)
 		<-exit
 	}
 }
@@ -122,13 +134,17 @@ func UserConn(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	//不检查来源
 	upgrader.CheckOrigin = func(r *http.Request) bool { return true }
+	userId := vars["userId"]
 	ws, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
-		log.Print("https升级为wss失败:err:")
-		log.Fatal(err)
+		ZLogger.Warn("链接断开",
+			zap.String("type", "user"),
+			zap.String("userId", userId),
+			zap.Error(err),
+		)
 	}
-	userId := vars["userId"]
-	fmt.Println(userId)
+
+	ZLogger.Info("新用户链接", zap.String("type", "user"), zap.String("userId", userId), )
 	defer func() {
 		err := ws.Close()
 		if err != nil {
@@ -140,17 +156,17 @@ func UserConn(w http.ResponseWriter, r *http.Request) {
 		}
 	}()
 
-	var client *module.Client
+	var c *client.Client
 	//链接
 	if len(userId) > 0 && userId != "0" {
 		var ok bool
-		if client,ok = pool.Connections[userId]; !ok {
-			client = module.NewClient(ws, userId)
+		if c, ok = pool.Connections[userId]; !ok {
+			c = client.NewClient(ws, userId)
 		}
 		//pool.Left <- userId
-		pool.Join <- client
-		go client.ReadMessageToUser(pool)
-		go client.WriteMessage(pool)
+		pool.Join <- c
+		go c.ReadMessageToUser(pool)
+		go c.WriteMessage(pool)
 	}
 
 	<-exit
@@ -158,9 +174,8 @@ func UserConn(w http.ResponseWriter, r *http.Request) {
 
 func GroupsHandle() {
 	for {
-		g := <- groupChannel
-		log.Print("启动")
-		log.Print(g)
+		g := <-groupChannel
+		ZLogger.Info("启动一个组协程")
 		go g.Handle()
 	}
 }
