@@ -1,0 +1,68 @@
+syntax = "proto3";
+
+// cmd 进入api目录  protoc logic/grpc/api.proto --go_out=plugins=grpc:./   未生成client时，加上plugins
+package logic;
+
+option go_package = "grpc";
+
+//import "github.com/gogo/protobuf/gogoproto/gogo.proto";
+
+service Logic {
+  // Sends a greeting
+  rpc SayHello (HelloRequest) returns (HelloReply) {}
+  rpc GetTotal (RoomRequest) returns (RoomReply) {}
+
+  rpc Ping(PingReq) returns(PingReply);
+  rpc PushMsg(PushMsgReq) returns(PushMsgReply);
+}
+
+message PingReq {
+}
+
+message PingReply {
+
+}
+
+message PushMsgReq {
+    string msgId = 1;
+    string content = 2;
+    string userId = 3;
+    string groupId = 4;
+    string toUserId = 5;
+    string type = 6;
+    RedisParam redis = 7;
+
+}
+message RedisParam {
+     string addr = 1;
+     string password = 2;
+}
+message PushMsgReply {
+    string msgId = 1;
+    string serverId = 2;
+}
+
+
+
+
+// The request message containing the user's name.
+message HelloRequest {
+  string name = 1;
+}
+
+// The response message containing the greetings
+message HelloReply {
+  string message = 1;
+}
+
+message RoomRequest {
+   string roomId = 2;
+}
+
+message RoomReply {
+   string count = 2;
+}
+
+
+
+
