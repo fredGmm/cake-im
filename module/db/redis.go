@@ -7,6 +7,7 @@ import (
 	"go.uber.org/zap"
 	"imChong/log"
 	"imChong/module/transfer"
+	"os"
 	"time"
 )
 
@@ -30,13 +31,15 @@ func NewRedisContain(addr, password string) *RedisContain {
 				//redis.DialWriteTimeout(10),
 				//redis.DialPassword(""),
 			)
+			if err != nil {
+				return nil, err
+			}
+
 			if _, err := conn.Do("AUTH", password); err != nil {
 				conn.Close()
 				return nil, err
 			}
-			if err != nil {
-				return nil, err
-			}
+
 			return conn, nil
 		},
 	}
@@ -66,6 +69,13 @@ func (r *RedisContain) SetMessage(message *transfer.Message) error {
 
 func (r *RedisContain) JoinMember(userId, groupId string) {
 	conn := r.Pool.Get()
+	if conn.Err() != nil {
+		log.Error("redis connect error",
+			zap.String("msg", conn.Err().Error()),
+		)
+		os.Exit(1)
+	}
+
 	//在线人数
 	_, err := conn.Do("SADD", "ONLINE_COUNT", userId)
 	if err != nil {
