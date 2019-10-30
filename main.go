@@ -4,7 +4,8 @@ import (
 	"go.uber.org/zap"
 	"github.com/fredGmm/imChong/config"
 	"github.com/fredGmm/imChong/log"
-	"github.com/fredGmm/imChong/module/connect"
+	"github.com/fredGmm/imChong/pkg/connect"
+	"imChong/log"
 )
 
 var ZLogger = Zlog.Logger()

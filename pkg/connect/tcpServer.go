@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"go.uber.org/zap"
 	logic "imChong/api/logic/grpc"
-	"imChong/module/transfer"
+	"github.com/fredGmm/imChong/pkg/transfer"
 	"net"
 	"time"
 )

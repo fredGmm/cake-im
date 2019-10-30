@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"go.uber.org/zap"
 	pb "imChong/api/logic/grpc"
-	"imChong/module/db"
-	"imChong/module/transfer"
+	"github.com/fredGmm/imChong/pkg/db"
+	"github.com/fredGmm/imChong/pkg/transfer"
 )
 
 type RpcServer struct{}

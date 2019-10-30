@@ -1,7 +1,7 @@
 package config
 
 import (
-	"github.com/Terry-Mao/goim/pkg/time"
+	"time"
 	"github.com/Unknwon/goconfig"
 	"github.com/alecthomas/kingpin"
 	"imChong/toolkit/path"

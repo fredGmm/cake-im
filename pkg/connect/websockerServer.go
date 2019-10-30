@@ -4,7 +4,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/gorilla/websocket"
 	"go.uber.org/zap"
-	"imChong/module/db"
+	"github.com/fredGmm/imChong/pkg/db"
 	"net/http"
 )
 
