@@ -18,8 +18,7 @@ func GetConfigPath(path string) (p string, error error) {
 		dir := filepath.Dir(abPath)
 		log.Printf(dir)
 		separator := string(filepath.Separator)
-		//configPath := dir + separator + "config" + separator + "Config.ini"
-		configPath := "E:\\code\\golang\\src\\imChong" + separator + "config" + separator + "Config.ini"
+		configPath := dir + separator + "config" + separator + "Config.ini"
 		_, err2 := os.Stat(configPath)
 		if err2 == nil {
 			return configPath, nil
