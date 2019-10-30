@@ -4,7 +4,7 @@ import (
 	"errors"
 	"log"
 	"os"
-	"github.com/fredGmm/imChong/path/filepath"
+	"path/filepath"
 )
 
 func GetConfigPath(path string) (p string, error error) {
