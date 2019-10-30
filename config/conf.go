@@ -52,18 +52,34 @@ func parseConf(confPath string) (c *Config, err error) {
 	if err != nil {
 		return nil, err
 	}
-	host, err2 := cfg.GetValue("local", "host")
-	if err2 != nil {
-		return nil, err2
+	host, err := cfg.GetValue("local", "host")
+	if err != nil {
+		return nil, err
 	}
-	ip, err3 := cfg.GetValue("local", "ip")
-	if err3 != nil {
-		return nil, err3
+	ip, err := cfg.GetValue("local", "ip")
+	if err != nil {
+		return nil, err
 	}
-	port, err4 := cfg.GetValue("local", "port")
-	if err4 != nil {
-		return nil, err4
+	port, err := cfg.GetValue("local", "port")
+	if err != nil {
+		return nil, err
 	}
+
+	tcpIp,err := cfg.GetValue("tcp", "ip")
+	if err != nil {
+		return nil, err
+	}
+	tcpPort,err := cfg.GetValue("tcp", "port")
+	if err != nil {
+		return nil, err
+	}
+	tcpBind := tcpIp + ":" + tcpPort
+
+	websocketIp, err := cfg.GetValue("websocket", "port")
+	if err != nil {
+		return nil, err
+	}
+	websocketBind := ":" + websocketIp
 
 	redisHost, err5 := cfg.GetValue("redis", "host")
 	if err5 != nil {
@@ -97,7 +113,7 @@ func parseConf(confPath string) (c *Config, err error) {
 		Ip:   ip,
 		Port: port,
 		TCP: &TCP{
-			Bind:         []string{":8888"},
+			Bind:         []string{tcpBind},
 			SendBuf:      4096,
 			RcvBuf:       4096,
 			KeepAlive:    false,
@@ -109,7 +125,7 @@ func parseConf(confPath string) (c *Config, err error) {
 			WriteBufSize: 8192,
 		},
 		Websocket: &Websocket{
-			Bind: []string{":3102"},
+			Bind: []string{websocketBind},
 		},
 		Bucket: &Bucket{
 			Size:          32,

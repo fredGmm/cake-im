@@ -1,11 +1,10 @@
 package main
 
 import (
-	"go.uber.org/zap"
 	"github.com/fredGmm/imChong/config"
-	"github.com/fredGmm/imChong/log"
+	Zlog "github.com/fredGmm/imChong/log"
 	"github.com/fredGmm/imChong/pkg/connect"
-	"imChong/log"
+	"go.uber.org/zap"
 )
 
 var ZLogger = Zlog.Logger()
@@ -17,7 +16,6 @@ func main() {
 	if err != nil {
 		ZLogger.Fatal("config fail", zap.Error(err))
 	}
-
 	srv := connect.NewServer(c)
 
 	//runtime.NumCPU()
