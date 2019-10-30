@@ -6,7 +6,7 @@ import (
 	"github.com/gomodule/redigo/redis"
 	"go.uber.org/zap"
 	"github.com/fredGmm/imChong/log"
-	"github.com/fredGmm/imChong/module/transfer"
+	"github.com/fredGmm/imChong/pkg/transfer"
 	"os"
 	"time"
 )

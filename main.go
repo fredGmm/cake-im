@@ -5,7 +5,7 @@ import (
 	"github.com/fredGmm/imChong/config"
 	"github.com/fredGmm/imChong/log"
 	"github.com/fredGmm/imChong/pkg/connect"
-	"github.com/fredGmm/imChong/log"
+	"imChong/log"
 )
 
 var ZLogger = Zlog.Logger()

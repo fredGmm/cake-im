@@ -2,9 +2,9 @@ package main
 
 import (
 	"fmt"
-	"google.golang.org/grpc"
-	pb "imChong/api/logic/grpc"
+	pb "github.com/fredGmm/imChong/api/logic/grpc"
 	"github.com/fredGmm/imChong/pkg/connect"
+	"google.golang.org/grpc"
 	"net"
 )
 

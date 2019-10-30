@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 	"go.uber.org/zap"
-	pb "imChong/api/logic/grpc"
+	pb "github.com/fredGmm/imChong/api/logic/grpc"
 	"github.com/fredGmm/imChong/pkg/db"
 	"github.com/fredGmm/imChong/pkg/transfer"
 )
