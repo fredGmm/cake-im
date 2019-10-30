@@ -2,9 +2,9 @@ package main
 
 import (
 	"go.uber.org/zap"
-	"imChong/config"
-	"imChong/log"
-	"imChong/module/connect"
+	"github.com/fredGmm/imChong/config"
+	"github.com/fredGmm/imChong/log"
+	"github.com/fredGmm/imChong/module/connect"
 )
 
 var ZLogger = Zlog.Logger()

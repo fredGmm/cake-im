@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"github.com/gomodule/redigo/redis"
 	"go.uber.org/zap"
-	"imChong/log"
-	"imChong/module/transfer"
+	"github.com/fredGmm/imChong/log"
+	"github.com/fredGmm/imChong/module/transfer"
 	"os"
 	"time"
 )

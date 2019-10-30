@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"google.golang.org/grpc"
 	pb "imChong/api/logic/grpc"
-	"imChong/module/connect"
+	"github.com/fredGmm/imChong/pkg/connect"
 	"net"
 )
 

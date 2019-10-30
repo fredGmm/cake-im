@@ -5,9 +5,10 @@ import (
 	"github.com/gorilla/websocket"
 	"go.uber.org/zap"
 	logic "imChong/api/logic/grpc"
-	"imChong/log"
-	"imChong/module/db"
-	"imChong/module/transfer"
+	"github.com/fredGmm/imChong/log"
+	"github.com/fredGmm/imChong/pkg/db"
+	"github.com/fredGmm/imChong/pkg/transfer"
+	"github.com/fredGmm/imChong/log"
 	"time"
 )
 
