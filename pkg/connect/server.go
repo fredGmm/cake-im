@@ -9,7 +9,6 @@ import (
 	logic "github.com/fredGmm/imChong/api/logic/grpc"
 	"github.com/fredGmm/imChong/config"
 	"github.com/fredGmm/imChong/log"
-	"imChong/log"
 	"time"
 )
 

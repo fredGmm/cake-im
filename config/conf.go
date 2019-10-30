@@ -4,7 +4,7 @@ import (
 	"time"
 	"github.com/Unknwon/goconfig"
 	"github.com/alecthomas/kingpin"
-	"imChong/toolkit/path"
+	"github.com/fredGmm/imChong/toolkit/path"
 	"strconv"
 )
 

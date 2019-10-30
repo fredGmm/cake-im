@@ -4,7 +4,7 @@ import (
 	"context"
 	"github.com/gorilla/websocket"
 	"go.uber.org/zap"
-	logic "imChong/api/logic/grpc"
+	logic "github.com/fredGmm/imChong/api/logic/grpc"
 	"github.com/fredGmm/imChong/log"
 	"github.com/fredGmm/imChong/pkg/db"
 	"github.com/fredGmm/imChong/pkg/transfer"
