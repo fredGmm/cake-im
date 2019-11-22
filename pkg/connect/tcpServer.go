@@ -5,8 +5,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"go.uber.org/zap"
-	logic "imChong/api/logic/grpc"
-	"imChong/module/transfer"
+	logic "github.com/fredGmm/imChong/api/logic/grpc"
+	"github.com/fredGmm/imChong/pkg/transfer"
 	"net"
 	"time"
 )

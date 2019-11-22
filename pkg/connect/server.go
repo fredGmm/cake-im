@@ -6,9 +6,9 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/balancer/roundrobin"
 	"google.golang.org/grpc/keepalive"
-	logic "imChong/api/logic/grpc"
-	"imChong/config"
-	"imChong/log"
+	logic "github.com/fredGmm/imChong/api/logic/grpc"
+	"github.com/fredGmm/imChong/config"
+	"github.com/fredGmm/imChong/log"
 	"time"
 )
 

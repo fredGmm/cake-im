@@ -2,7 +2,7 @@ package connect
 
 import (
 	"go.uber.org/zap"
-	"imChong/module/transfer"
+	"github.com/fredGmm/imChong/pkg/transfer"
 	"sync"
 )
 
