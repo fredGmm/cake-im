@@ -1,9 +1,12 @@
 package zapLog
 
 import (
+	"fmt"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
-	"runtime"
+	"os"
+	"path/filepath"
+	"strings"
 )
 
 func Logger() *zap.Logger{
@@ -23,11 +26,12 @@ func Logger() *zap.Logger{
 
 	level := zap.NewAtomicLevelAt(zap.DebugLevel)
 	var defaultPath string
-	if runtime.GOOS == "linux" {
-		defaultPath = "/tmp/chong-linux.log"
-	}else {
-		defaultPath = "\\code\\golang\\module\\cake-im\\runtime\\log\\cake-im.log"
-	}
+	//if runtime.GOOS == "linux" {
+	//	defaultPath = "/tmp/chong-linux.log"
+	//}else {
+	//	defaultPath = "\\code\\golang\\module\\cake-im\\runtime\\log\\cake-im.log"
+	//}
+	defaultPath = loggerPath()
 	config := zap.Config{
 		Level:level,
 		Development:true,
@@ -44,4 +48,22 @@ func Logger() *zap.Logger{
 		panic(err)
 	}
 	return logger
+}
+
+//后期优化 对日志文件切割
+func loggerPath() string {
+	dir,_ := os.Getwd()
+	logDir := dir + string(filepath.Separator) + "runtime" + string(filepath.Separator) + "logs"
+	err := os.MkdirAll(logDir, 0755)
+	if err != nil {
+		fmt.Printf("日志目录创建失败:%s", logDir)
+		panic(err)
+	}
+	logFile := dir + string(filepath.Separator) + "runtime" + string(filepath.Separator) +
+		"logs" + string(filepath.Separator) + "cake-im.log"
+	_, createErr := os.Create(logFile)
+	if err != nil {
+		panic(createErr)
+	}
+	return strings.TrimLeft(logFile, "E:")
 }

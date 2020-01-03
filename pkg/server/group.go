@@ -5,7 +5,6 @@ import (
 
 	"cake-im/pkg"
 	"go.uber.org/zap"
-	"log"
 	"sync"
 )
 
@@ -54,7 +53,6 @@ func (group *Group) Handle() {
 				group.Clients.Delete(u)
 			}
 		case m := <-group.Send:
-			log.Print("有消息")
 			// 给群组每个人广播(除了自己)
 			group.Clients.Range(func(_, c interface{}) bool {
 				h := c.(*Connection) // 群组中的连接

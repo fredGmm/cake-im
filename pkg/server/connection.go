@@ -87,7 +87,6 @@ func (c *Connection) Write(p *ConnectionPool)  {
 			continue
 		}
 		msg.OnlineCount = c.Redis.GetOnlineCount()
-		log.Print("写入消息")
 		// 发送消息给 链接
 		if err := c.Conn.WriteJSON(msg); err != nil {
 			zLog.Warn("写入消息失败",
