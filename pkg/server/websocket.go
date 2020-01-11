@@ -92,11 +92,13 @@ func GroupConn(w http.ResponseWriter, r *http.Request, gClient *client.GrpcClien
 		c.Redis = redisContain
 		redisContain.JoinMember(userId, groupId)
 
-		go c.Read(gClient, group)
+		go c.Read(gClient, group, pool)
 		go c.Write(pool)
 
 		<-gClient.Exit
 	}
+
+	return
 }
 
 func GroupsHandle() {

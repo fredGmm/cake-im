@@ -33,13 +33,14 @@ func NewConnection(conn *websocket.Conn, userId string) *Connection {
 	}
 }
 
-func (c *Connection) Read(client *client.GrpcClient, g *Group)  {
+func (c *Connection) Read(client *client.GrpcClient, g *Group, pool *ConnectionPool)  {
 	for {
 		msg := pkg.Message{}
 		err := c.Conn.ReadJSON(&msg)
 		if err != nil {
 			log.Print("读取连接消息时，发生错误")
 			log.Print(err)
+			pool.Left <- c.UserId
 			break
 		}
 		msg.UserId = c.UserId
@@ -108,7 +109,9 @@ func (c *Connection) Write(p *ConnectionPool)  {
 					zap.Error(redisErr),
 				)
 			}
+			break
 		}
+
 
 	}
 }
