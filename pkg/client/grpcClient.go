@@ -34,7 +34,7 @@ type GrpcClient struct {
 func NewGrpcClient(c *config.Config) *GrpcClient {
 	s := &GrpcClient{
 		Config:         c,
-		serverID: c.Grpc.ServerId,
+		serverID: "0",
 		RpcClient: newChatClient(c),
 		Exit:      make(chan int),
 	}
@@ -47,7 +47,7 @@ func newChatClient(c *config.Config) chat.ChatClient {
 
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
-	conn, err := grpc.DialContext(ctx, c.Grpc.ServerAddr,
+	conn, err := grpc.DialContext(ctx, ":1234",
 		[]grpc.DialOption{
 			grpc.WithInsecure(),
 			grpc.WithInitialWindowSize(grpcInitialWindowSize),

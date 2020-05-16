@@ -2,37 +2,46 @@ package main
 
 import (
 	"cake-im/config"
-	"cake-im/pkg/client"
-	"cake-im/pkg/server"
+	connServer "cake-im/pkg/server"
 	"cake-im/pkg/zapLog"
+	rpcServer "github.com/smallnest/rpcx/server"
 	"go.uber.org/zap"
 	"log"
+	_ "net/http/pprof"
 )
 
 var zLog = zapLog.Logger()
-var exit chan int
+var exit chan struct{}
 
 // cake-im 入口
 func main() {
 	conf, err := config.Init()
 	if err != nil {
-		log.Fatal("config fail")
-		log.Fatalln(err)
-		log.Fatalln(conf)
+		zLog.Fatal("config parse fail",zap.Error(err))
 	}
-	grpcClient := client.NewGrpcClient(conf)
+	//grpcClient := client.NewGrpcClient(conf)
+	initRpc(conf)
 
-	zLog.Info("启动tcp服务，监听地址端口:", zap.String("addr", conf.TCP.Bind[0]))
-	if err := server.InitTcp(grpcClient); err != nil {
-		log.Print("tcp 启动失败", err)
-	}
+	// tcp通信
+	//if err := server.InitTcp(grpcClient); err != nil {
+	//	log.Print("tcp 启动失败", err)
+	//}
 
+	//websocket 通信
 	zLog.Info("启动websocket服务，监听地址端口:", zap.String("addr", conf.Websocket.Bind[0]))
-	//启动websocket
-	if err := server.InitWebsocket(grpcClient); err != nil {
-		log.Print("ws启动失败")
-		log.Print(err)
+	if err := connServer.StartWebsocket(conf); err != nil {
+		zLog.Fatal("websocket init error",zap.Error(err))
 	}
 
+	// 退出
 	<-exit
+}
+
+func initRpc(conf *config.Config)  {
+	s := rpcServer.NewServer()
+	err := s.Register(new(connServer.Msg), "")
+	if err != nil {
+		log.Printf("rpc 注册出错")
+	}
+	go s.Serve("tcp", conf.Xrpc.Addr)
 }

@@ -23,7 +23,9 @@ type Config struct {
 	Websocket *Websocket
 	TCP *TCP
 	Redis *Redis
-	Grpc *Grpc
+	//Grpc *Grpc
+	Xrpc *Xrpc
+	Exit chan struct{}
 }
 
 type Websocket struct {
@@ -63,11 +65,16 @@ type Grpc struct {
 	ServerAddr string
 }
 
+type Xrpc struct {
+	Addr string
+}
+
 func parseFlag()  {
 	kingpin.HelpFlag.Short('h')
 	kingpin.Version(version)
 	//kingpin.Flag("dev", "环境选择").Default("true").BoolVar(&dev)
 	kingpin.Flag("configPath", "配置文件路径").Short('c').Default("E:\\code\\golang\\module\\cake-im\\config\\config.ini").StringVar(&defaultConfigPath)
+	//kingpin.Flag("configPath", "配置文件路径").Short('c').Default("/mnt/hgfs/code/golang/module/cake-im/config/config.ini").StringVar(&defaultConfigPath)
 	kingpin.Parse()
 	return
 }
@@ -88,10 +95,10 @@ func parseConf(confPath string) (c *Config, err error) {
 	if err != nil {
 		return nil, err
 	}
-	//host, err := cfg.GetValue("local", "host")
-	//if err != nil {
-	//	return nil, err
-	//}
+	ip, err := cfg.GetValue("local", "ip")
+	if err != nil {
+		return nil, err
+	}
 	//ip, err := cfg.GetValue("local", "ip")
 	//if err != nil {
 	//	return nil, err
@@ -101,21 +108,18 @@ func parseConf(confPath string) (c *Config, err error) {
 	//	return nil, err
 	//}
 
-	tcpIp,err := cfg.GetValue("tcp", "ip")
-	if err != nil {
-		return nil, err
-	}
+
 	tcpPort,err := cfg.GetValue("tcp", "port")
 	if err != nil {
 		return nil, err
 	}
-	tcpBind := tcpIp + ":" + tcpPort
+	tcpBind := ip + ":" + tcpPort
 
 	websocketIp, err := cfg.GetValue("websocket", "port")
 	if err != nil {
 		return nil, err
 	}
-	websocketBind := ":" + websocketIp
+	websocketBind := ip + ":" + websocketIp
 
 	redisHost, err5 := cfg.GetValue("redis", "host")
 	if err5 != nil {
@@ -144,14 +148,19 @@ func parseConf(confPath string) (c *Config, err error) {
 		return nil, err10
 	}
 
-	grpcAddr, err9 := cfg.GetValue("grpc", "serverAddr")
-	if err9 != nil {
-		return nil, err9
-	}
+	//grpcAddr, err9 := cfg.GetValue("grpc", "serverAddr")
+	//if err9 != nil {
+	//	return nil, err9
+	//}
 
-	grpcServerId, err7 := cfg.GetValue("grpc", "serverId")
-	if err7 != nil {
-		return nil, err7
+	//grpcServerId, err7 := cfg.GetValue("grpc", "serverId")
+	//if err7 != nil {
+	//	return nil, err7
+	//}
+
+	XrpcAddr, err := cfg.GetValue("xrpc", "addr")
+	if err != nil {
+		return nil, err
 	}
 
 
@@ -187,14 +196,21 @@ func parseConf(confPath string) (c *Config, err error) {
 			Password: redisPwd,
 			Database: redisDatabase,
 		},
-		Grpc:&Grpc{
-			ServerId:grpcServerId,
-			ServerAddr:grpcAddr,
+		//Grpc:&Grpc{
+		//	ServerId:grpcServerId,
+		//	ServerAddr:grpcAddr,
+		//},
+		Xrpc:&Xrpc{
+			Addr: XrpcAddr,
 		},
 	}
 	return conf, nil
 }
 
+
+// getConfigPath get config from config path,if error, default would be give
+//config path is  root_path/config/Config.ini
+//targetPath Specified path
 func getConfigPath(targetPath string) (configPath string, error error) {
 	_, err := os.Stat(targetPath)
 	if err == nil {
@@ -203,7 +219,6 @@ func getConfigPath(targetPath string) (configPath string, error error) {
 	if os.IsNotExist(err) {
 		abPath, _ := filepath.Abs(os.Args[0])
 		dir := filepath.Dir(abPath)
-
 		log.Printf(dir)
 		separator := string(filepath.Separator)
 		configPath := dir + separator + "config" + separator + "Config.ini"

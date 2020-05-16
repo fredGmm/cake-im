@@ -116,6 +116,41 @@ func (r *RedisContain) GetOnlineCount() int {
 	return len(reply)
 }
 
+func (r *RedisContain) GetUserIdsByGroupId(groupId string) []string {
+	key := "GROUP_MEMBER_" + groupId
+	conn := r.Pool.Get()
+	reply, err := redis.Strings(conn.Do("SMEMBERS", key))
+	if err != nil {
+		//log.Error("取在线人数失败",
+		//	zap.Error(err),
+		//)
+	}
+	return reply
+}
+
+func (r *RedisContain) SaveUserRpcAddr(groupId string, userId string, wsAddr string) (err error) {
+	conn := r.Pool.Get()
+	_,err = conn.Do("HSET", "GROUP_" + groupId,userId,wsAddr)
+	return err
+}
+
+func (r *RedisContain) GetUserMap(groupId string) (u map[string]string){
+	conn := r.Pool.Get()
+	groupKey := "GROUP_" + groupId
+	userIds, err := redis.Strings(conn.Do("HKEYS", groupKey))
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	users := make(map[string]string)
+	for _,v := range userIds {
+		addr, _ := redis.String(conn.Do("HGET", groupKey, v))
+		users[v] = addr
+	}
+	return users
+}
+
+
 func (r *RedisContain) Test(key, value string) error {
 	conn := r.Pool.Get()
 	_, err := conn.Do("SET", key, value)

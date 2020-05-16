@@ -12,3 +12,12 @@ type Message struct {
 	Images      []string `json:"images"`
 	Time        string   `json:"time"`
 }
+
+type Result struct {
+	Code int `json:"code"`
+	Data interface{} `json:"data"`
+}
+
+type MessageChan struct {
+	Message chan Message
+}
